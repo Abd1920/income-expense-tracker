@@ -13,7 +13,7 @@ const DailyIncomeExpenseTracker = () => {
     description: ''
   });
 
-  const API_URL = 'http://localhost:5000/api/entries';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://income-expense-tracker-sage.vercel.app/api/entries';
 
   const categories = {
     income: ['Salary', 'Freelance', 'Business', 'Investment', 'Other Income'],
@@ -49,10 +49,10 @@ const DailyIncomeExpenseTracker = () => {
             amount: parseFloat(newEntry.amount)
           }),
         });
-        
+
         const savedEntry = await response.json();
         setEntries([savedEntry, ...entries]);
-        
+
         setNewEntry({
           date: new Date().toISOString().split('T')[0],
           type: 'expense',
@@ -82,13 +82,13 @@ const DailyIncomeExpenseTracker = () => {
 
   const getMonthlyData = () => {
     const monthly = {};
-    
+
     entries.forEach(entry => {
       const monthKey = entry.date.substring(0, 7);
       if (!monthly[monthKey]) {
         monthly[monthKey] = { income: 0, expense: 0, entries: [] };
       }
-      
+
       if (entry.type === 'income') {
         monthly[monthKey].income += entry.amount;
       } else {
@@ -96,7 +96,7 @@ const DailyIncomeExpenseTracker = () => {
       }
       monthly[monthKey].entries.push(entry);
     });
-    
+
     return monthly;
   };
 
@@ -143,7 +143,7 @@ const DailyIncomeExpenseTracker = () => {
               {showForm ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
-          
+
           <div className={`${showForm ? 'block' : 'hidden sm:block'}`}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
               <div>
@@ -155,7 +155,7 @@ const DailyIncomeExpenseTracker = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                 <select
@@ -228,21 +228,18 @@ const DailyIncomeExpenseTracker = () => {
                 <div className="text-sm text-red-700 font-medium">Current Month Expenses</div>
                 <div className="text-xl sm:text-2xl font-bold text-red-800">Rs {monthlyData[sortedMonths[0]].expense.toFixed(2)}</div>
               </div>
-              <div className={`border-2 rounded-lg p-4 ${
-                monthlyData[sortedMonths[0]].income - monthlyData[sortedMonths[0]].expense >= 0 
-                  ? 'bg-blue-50 border-blue-200' 
+              <div className={`border-2 rounded-lg p-4 ${monthlyData[sortedMonths[0]].income - monthlyData[sortedMonths[0]].expense >= 0
+                  ? 'bg-blue-50 border-blue-200'
                   : 'bg-orange-50 border-orange-200'
-              }`}>
-                <div className={`text-sm font-medium ${
-                  monthlyData[sortedMonths[0]].income - monthlyData[sortedMonths[0]].expense >= 0 
-                    ? 'text-blue-700' 
-                    : 'text-orange-700'
-                }`}>Current Month Balance</div>
-                <div className={`text-xl sm:text-2xl font-bold ${
-                  monthlyData[sortedMonths[0]].income - monthlyData[sortedMonths[0]].expense >= 0 
-                    ? 'text-blue-800' 
-                    : 'text-orange-800'
                 }`}>
+                <div className={`text-sm font-medium ${monthlyData[sortedMonths[0]].income - monthlyData[sortedMonths[0]].expense >= 0
+                    ? 'text-blue-700'
+                    : 'text-orange-700'
+                  }`}>Current Month Balance</div>
+                <div className={`text-xl sm:text-2xl font-bold ${monthlyData[sortedMonths[0]].income - monthlyData[sortedMonths[0]].expense >= 0
+                    ? 'text-blue-800'
+                    : 'text-orange-800'
+                  }`}>
                   Rs {(monthlyData[sortedMonths[0]].income - monthlyData[sortedMonths[0]].expense).toFixed(2)}
                 </div>
               </div>
@@ -258,9 +255,8 @@ const DailyIncomeExpenseTracker = () => {
               <div className="flex flex-wrap gap-2 sm:gap-4 text-sm sm:text-base">
                 <span className="text-green-600 font-semibold">Income: Rs {monthlyData[monthKey].income.toFixed(2)}</span>
                 <span className="text-red-600 font-semibold">Expense: Rs {monthlyData[monthKey].expense.toFixed(2)}</span>
-                <span className={`font-bold ${
-                  monthlyData[monthKey].income - monthlyData[monthKey].expense >= 0 ? 'text-blue-600' : 'text-orange-600'
-                }`}>
+                <span className={`font-bold ${monthlyData[monthKey].income - monthlyData[monthKey].expense >= 0 ? 'text-blue-600' : 'text-orange-600'
+                  }`}>
                   Balance: Rs {(monthlyData[monthKey].income - monthlyData[monthKey].expense).toFixed(2)}
                 </span>
               </div>
@@ -286,19 +282,17 @@ const DailyIncomeExpenseTracker = () => {
                       <tr key={entry._id} className="border-b border-gray-200 hover:bg-gray-50">
                         <td className="px-4 py-3 text-sm">{formatDate(entry.date)}</td>
                         <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            entry.type === 'income' 
-                              ? 'bg-green-100 text-green-800' 
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${entry.type === 'income'
+                              ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
-                          }`}>
+                            }`}>
                             {entry.type === 'income' ? 'Income' : 'Expense'}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-sm font-medium">{entry.category}</td>
                         <td className="px-4 py-3 text-sm text-gray-600">{entry.description}</td>
-                        <td className={`px-4 py-3 text-right font-semibold ${
-                          entry.type === 'income' ? 'text-green-700' : 'text-red-700'
-                        }`}>
+                        <td className={`px-4 py-3 text-right font-semibold ${entry.type === 'income' ? 'text-green-700' : 'text-red-700'
+                          }`}>
                           {entry.type === 'income' ? '+' : '-'} Rs {entry.amount.toFixed(2)}
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -324,11 +318,10 @@ const DailyIncomeExpenseTracker = () => {
                   <div key={entry._id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          entry.type === 'income' 
-                            ? 'bg-green-100 text-green-800' 
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${entry.type === 'income'
+                            ? 'bg-green-100 text-green-800'
                             : 'bg-red-100 text-red-800'
-                        }`}>
+                          }`}>
                           {entry.type === 'income' ? 'Income' : 'Expense'}
                         </span>
                         <div className="text-sm text-gray-600 mt-1">{formatDate(entry.date)}</div>
@@ -344,9 +337,8 @@ const DailyIncomeExpenseTracker = () => {
                     {entry.description && (
                       <div className="text-sm text-gray-600 mt-1">{entry.description}</div>
                     )}
-                    <div className={`text-lg font-bold mt-2 ${
-                      entry.type === 'income' ? 'text-green-700' : 'text-red-700'
-                    }`}>
+                    <div className={`text-lg font-bold mt-2 ${entry.type === 'income' ? 'text-green-700' : 'text-red-700'
+                      }`}>
                       {entry.type === 'income' ? '+' : '-'} Rs {entry.amount.toFixed(2)}
                     </div>
                   </div>
