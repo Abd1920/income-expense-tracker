@@ -7,10 +7,12 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',
+    'https://income-expense-tracker-x575-4dr0fvzbi.vercel.app'
+  ],
   credentials: true
 }));
-app.use(express.json());
 
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/income-tracker';
