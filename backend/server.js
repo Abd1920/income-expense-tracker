@@ -5,21 +5,17 @@ require('dotenv').config();
 
 const app = express();
 
-// CRITICAL: Add these middleware BEFORE routes
+// CRITICAL: Middleware MUST come before routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin: '*', // Allow all origins for now
+  origin: '*',
   methods: ['GET', 'POST', 'DELETE', 'PUT'],
   credentials: true
 }));
 
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  console.error('❌ MONGODB_URI is not defined in environment variables');
-}
 
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
@@ -37,7 +33,7 @@ const entrySchema = new mongoose.Schema({
 
 const Entry = mongoose.model('Entry', entrySchema);
 
-// Root route
+// IMPORTANT: Root route - this fixes "Cannot GET /"
 app.get('/', (req, res) => {
   res.json({ 
     message: 'Income Expense Tracker API is running!',
@@ -94,5 +90,5 @@ app.delete('/api/entries/:id', async (req, res) => {
   }
 });
 
-// Export for Vercel serverless
+// CRITICAL: Export for Vercel
 module.exports = app;
