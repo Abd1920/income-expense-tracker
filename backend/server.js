@@ -5,19 +5,21 @@ require('dotenv').config();
 
 const app = express();
 
-// Middleware - CRITICAL: Add express.json() to parse request body
+// CRITICAL: Add these middleware BEFORE routes
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://income-expense-tracker-x575.vercel.app',
-    'https://income-expense-tracker-x575-4dr0fvzbi.vercel.app'
-  ],
+  origin: '*', // Allow all origins for now
+  methods: ['GET', 'POST', 'DELETE', 'PUT'],
   credentials: true
 }));
 
 // MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/income-tracker';
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI is not defined in environment variables');
+}
 
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
@@ -35,15 +37,15 @@ const entrySchema = new mongoose.Schema({
 
 const Entry = mongoose.model('Entry', entrySchema);
 
-// Routes
-
-// Root route for testing
+// Root route
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'Income Expense Tracker API',
-    status: 'Running',
+    message: 'Income Expense Tracker API is running!',
+    status: 'OK',
     endpoints: {
-      entries: '/api/entries'
+      getAllEntries: 'GET /api/entries',
+      createEntry: 'POST /api/entries',
+      deleteEntry: 'DELETE /api/entries/:id'
     }
   });
 });
@@ -54,24 +56,26 @@ app.get('/api/entries', async (req, res) => {
     const entries = await Entry.find().sort({ date: -1 });
     res.json(entries);
   } catch (error) {
+    console.error('Error fetching entries:', error);
     res.status(500).json({ message: error.message });
   }
 });
 
 // Add new entry
 app.post('/api/entries', async (req, res) => {
-  const entry = new Entry({
-    date: req.body.date,
-    type: req.body.type,
-    category: req.body.category,
-    amount: req.body.amount,
-    description: req.body.description
-  });
-
   try {
+    const entry = new Entry({
+      date: req.body.date,
+      type: req.body.type,
+      category: req.body.category,
+      amount: req.body.amount,
+      description: req.body.description || ''
+    });
+
     const newEntry = await entry.save();
     res.status(201).json(newEntry);
   } catch (error) {
+    console.error('Error creating entry:', error);
     res.status(400).json({ message: error.message });
   }
 });
@@ -79,20 +83,16 @@ app.post('/api/entries', async (req, res) => {
 // Delete entry
 app.delete('/api/entries/:id', async (req, res) => {
   try {
-    await Entry.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Entry deleted' });
+    const result = await Entry.findByIdAndDelete(req.params.id);
+    if (!result) {
+      return res.status(404).json({ message: 'Entry not found' });
+    }
+    res.json({ message: 'Entry deleted successfully' });
   } catch (error) {
+    console.error('Error deleting entry:', error);
     res.status(500).json({ message: error.message });
   }
 });
 
-// Export for Vercel
+// Export for Vercel serverless
 module.exports = app;
-
-// Start server (only for local development)
-if (require.main === module) {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-  });
-}
