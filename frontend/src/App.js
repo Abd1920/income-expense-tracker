@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Calendar, Menu, X } from 'lucide-react';
 
 const DailyIncomeExpenseTracker = () => {
@@ -13,6 +13,7 @@ const DailyIncomeExpenseTracker = () => {
     description: ''
   });
 
+  // Fixed: Ensure API URL is always set correctly
   const API_URL = process.env.REACT_APP_API_URL || 'https://income-expense-tracker-sage.vercel.app/api/entries';
 
   const categories = {
@@ -22,19 +23,24 @@ const DailyIncomeExpenseTracker = () => {
 
   useEffect(() => {
     fetchEntries();
-  }, [fetchEntries]);
+  }, []);
 
-  const fetchEntries = useCallback(async () => {
+  const fetchEntries = async () => {
     try {
+      console.log('Fetching from:', API_URL);
       const response = await fetch(API_URL);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
       setEntries(data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching entries:', error);
       setLoading(false);
+      alert('Failed to load entries. Please check your internet connection.');
     }
-  }, [API_URL]);
+  };
 
   const addEntry = async () => {
     if (newEntry.category && newEntry.amount) {
@@ -50,6 +56,10 @@ const DailyIncomeExpenseTracker = () => {
           }),
         });
 
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const savedEntry = await response.json();
         setEntries([savedEntry, ...entries]);
 
@@ -62,7 +72,7 @@ const DailyIncomeExpenseTracker = () => {
         });
       } catch (error) {
         console.error('Error adding entry:', error);
-        alert('Failed to add entry. Make sure the backend server is running!');
+        alert('Failed to add entry. Please try again.');
       }
     }
   };
@@ -70,12 +80,18 @@ const DailyIncomeExpenseTracker = () => {
   const deleteEntry = async (id) => {
     if (window.confirm('Are you sure you want to delete this entry?')) {
       try {
-        await fetch(`${API_URL}/${id}`, {
+        const response = await fetch(`${API_URL}/${id}`, {
           method: 'DELETE',
         });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         setEntries(entries.filter(entry => entry._id !== id));
       } catch (error) {
         console.error('Error deleting entry:', error);
+        alert('Failed to delete entry. Please try again.');
       }
     }
   };
