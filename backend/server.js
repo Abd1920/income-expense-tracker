@@ -5,10 +5,12 @@ require('dotenv').config();
 
 const app = express();
 
-// Middleware
+// Middleware - CRITICAL: Add express.json() to parse request body
+app.use(express.json());
 app.use(cors({
   origin: [
     'http://localhost:3000',
+    'https://income-expense-tracker-x575.vercel.app',
     'https://income-expense-tracker-x575-4dr0fvzbi.vercel.app'
   ],
   credentials: true
@@ -34,6 +36,17 @@ const entrySchema = new mongoose.Schema({
 const Entry = mongoose.model('Entry', entrySchema);
 
 // Routes
+
+// Root route for testing
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Income Expense Tracker API',
+    status: 'Running',
+    endpoints: {
+      entries: '/api/entries'
+    }
+  });
+});
 
 // Get all entries
 app.get('/api/entries', async (req, res) => {
@@ -73,8 +86,13 @@ app.delete('/api/entries/:id', async (req, res) => {
   }
 });
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+// Export for Vercel
+module.exports = app;
+
+// Start server (only for local development)
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
+}
