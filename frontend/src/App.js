@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Trash2, Calendar, Menu, X } from 'lucide-react';
 
 const DailyIncomeExpenseTracker = () => {
@@ -22,9 +22,9 @@ const DailyIncomeExpenseTracker = () => {
 
   useEffect(() => {
     fetchEntries();
-  }, []);
+  }, [fetchEntries]);
 
-  const fetchEntries = async () => {
+  const fetchEntries = useCallback(async () => {
     try {
       const response = await fetch(API_URL);
       const data = await response.json();
@@ -34,7 +34,7 @@ const DailyIncomeExpenseTracker = () => {
       console.error('Error fetching entries:', error);
       setLoading(false);
     }
-  };
+  }, [API_URL]);
 
   const addEntry = async () => {
     if (newEntry.category && newEntry.amount) {
@@ -229,16 +229,16 @@ const DailyIncomeExpenseTracker = () => {
                 <div className="text-xl sm:text-2xl font-bold text-red-800">Rs {monthlyData[sortedMonths[0]].expense.toFixed(2)}</div>
               </div>
               <div className={`border-2 rounded-lg p-4 ${monthlyData[sortedMonths[0]].income - monthlyData[sortedMonths[0]].expense >= 0
-                  ? 'bg-blue-50 border-blue-200'
-                  : 'bg-orange-50 border-orange-200'
+                ? 'bg-blue-50 border-blue-200'
+                : 'bg-orange-50 border-orange-200'
                 }`}>
                 <div className={`text-sm font-medium ${monthlyData[sortedMonths[0]].income - monthlyData[sortedMonths[0]].expense >= 0
-                    ? 'text-blue-700'
-                    : 'text-orange-700'
+                  ? 'text-blue-700'
+                  : 'text-orange-700'
                   }`}>Current Month Balance</div>
                 <div className={`text-xl sm:text-2xl font-bold ${monthlyData[sortedMonths[0]].income - monthlyData[sortedMonths[0]].expense >= 0
-                    ? 'text-blue-800'
-                    : 'text-orange-800'
+                  ? 'text-blue-800'
+                  : 'text-orange-800'
                   }`}>
                   Rs {(monthlyData[sortedMonths[0]].income - monthlyData[sortedMonths[0]].expense).toFixed(2)}
                 </div>
@@ -283,8 +283,8 @@ const DailyIncomeExpenseTracker = () => {
                         <td className="px-4 py-3 text-sm">{formatDate(entry.date)}</td>
                         <td className="px-4 py-3">
                           <span className={`px-2 py-1 rounded text-xs font-medium ${entry.type === 'income'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
                             }`}>
                             {entry.type === 'income' ? 'Income' : 'Expense'}
                           </span>
@@ -319,8 +319,8 @@ const DailyIncomeExpenseTracker = () => {
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <span className={`px-2 py-1 rounded text-xs font-medium ${entry.type === 'income'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
                           }`}>
                           {entry.type === 'income' ? 'Income' : 'Expense'}
                         </span>
