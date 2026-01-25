@@ -82,11 +82,11 @@ const DailyIncomeExpenseTracker = () => {
         const response = await fetch(`${API_URL}/${id}`, {
           method: 'DELETE',
         });
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         setEntries(entries.filter(entry => entry._id !== id));
       } catch (error) {
         console.error('Error deleting entry:', error);
@@ -123,7 +123,7 @@ const DailyIncomeExpenseTracker = () => {
     const currentDate = new Date(currentMonthKey + '-01');
     currentDate.setMonth(currentDate.getMonth() - 1);
     const previousMonthKey = currentDate.toISOString().substring(0, 7);
-    
+
     if (monthlyData[previousMonthKey]) {
       const prevBalance = monthlyData[previousMonthKey].income - monthlyData[previousMonthKey].expense;
       return prevBalance > 0 ? prevBalance : 0;
@@ -142,8 +142,8 @@ const DailyIncomeExpenseTracker = () => {
     }
 
     // Check if carry forward already exists for this month
-    const carryForwardExists = entries.some(entry => 
-      entry.date.substring(0, 7) === currentMonthKey && 
+    const carryForwardExists = entries.some(entry =>
+      entry.date.substring(0, 7) === currentMonthKey &&
       entry.category === 'Balance from Previous Month'
     );
 
@@ -200,8 +200,8 @@ const DailyIncomeExpenseTracker = () => {
 
   const currentMonthKey = new Date().toISOString().substring(0, 7);
   const previousBalance = getPreviousMonthBalance(currentMonthKey);
-  const hasCarryForward = entries.some(entry => 
-    entry.date.substring(0, 7) === currentMonthKey && 
+  const hasCarryForward = entries.some(entry =>
+    entry.date.substring(0, 7) === currentMonthKey &&
     entry.category === 'Balance from Previous Month'
   );
 
@@ -300,22 +300,23 @@ const DailyIncomeExpenseTracker = () => {
 
               <div className="sm:col-span-2 lg:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newEntry.description}
-                    onChange={(e) => setNewEntry({ ...newEntry, description: e.target.value })}
-                    placeholder="Optional"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
-                  />
-                  <button
-                    onClick={addEntry}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-1 whitespace-nowrap"
-                  >
-                    <Plus size={20} />
-                    <span className="hidden sm:inline">Add</span>
-                  </button>
-                </div>
+                <input
+                  type="text"
+                  value={newEntry.description}
+                  onChange={(e) => setNewEntry({ ...newEntry, description: e.target.value })}
+                  placeholder="Optional"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
+                />
+              </div>
+
+              <div className="sm:col-span-2 lg:col-span-1 flex items-end">
+                <button
+                  onClick={addEntry}
+                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-1"
+                >
+                  <Plus size={20} />
+                  <span>Add</span>
+                </button>
               </div>
             </div>
           </div>
