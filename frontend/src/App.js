@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Calendar, Menu, X } from 'lucide-react';
+import { Plus, Trash2, Calendar, Menu, X, ArrowRight } from 'lucide-react';
 
 const DailyIncomeExpenseTracker = () => {
   const [entries, setEntries] = useState([]);
@@ -13,11 +13,10 @@ const DailyIncomeExpenseTracker = () => {
     description: ''
   });
 
-  // Fixed: Ensure API URL is always set correctly
   const API_URL = process.env.REACT_APP_API_URL || 'https://income-expense-tracker-sage.vercel.app/api/entries';
 
   const categories = {
-    income: ['Balance', 'Salary', 'Freelance', 'Business', 'Investment', 'Other Income'],
+    income: ['Salary', 'Freelance', 'Business', 'Investment', 'Balance from Previous Month', 'Other Income'],
     expense: ['Groceries', 'Rent', 'Utilities', 'Transport', 'Entertainment', 'Shopping', 'Food', 'Health', 'Other Expense']
   };
 
@@ -119,6 +118,68 @@ const DailyIncomeExpenseTracker = () => {
   const monthlyData = getMonthlyData();
   const sortedMonths = Object.keys(monthlyData).sort().reverse();
 
+  // Function to get previous month's balance
+  const getPreviousMonthBalance = (currentMonthKey) => {
+    const currentDate = new Date(currentMonthKey + '-01');
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    const previousMonthKey = currentDate.toISOString().substring(0, 7);
+    
+    if (monthlyData[previousMonthKey]) {
+      const prevBalance = monthlyData[previousMonthKey].income - monthlyData[previousMonthKey].expense;
+      return prevBalance > 0 ? prevBalance : 0;
+    }
+    return 0;
+  };
+
+  // Function to add carry forward balance
+  const addCarryForwardBalance = async () => {
+    const currentMonthKey = new Date().toISOString().substring(0, 7);
+    const previousBalance = getPreviousMonthBalance(currentMonthKey);
+
+    if (previousBalance <= 0) {
+      alert('No positive balance from previous month to carry forward!');
+      return;
+    }
+
+    // Check if carry forward already exists for this month
+    const carryForwardExists = entries.some(entry => 
+      entry.date.substring(0, 7) === currentMonthKey && 
+      entry.category === 'Balance from Previous Month'
+    );
+
+    if (carryForwardExists) {
+      alert('Balance from previous month already added for this month!');
+      return;
+    }
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          date: new Date().toISOString().split('T')[0],
+          type: 'income',
+          category: 'Balance from Previous Month',
+          amount: previousBalance,
+          description: `Carried forward from ${formatMonth(new Date(currentMonthKey).setMonth(new Date(currentMonthKey).getMonth() - 1))}`
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const savedEntry = await response.json();
+      setEntries([savedEntry, ...entries]);
+      alert(`Successfully added Rs ${previousBalance.toFixed(2)} from previous month!`);
+    } catch (error) {
+      console.error('Error adding carry forward:', error);
+      alert('Failed to add carry forward balance. Please try again.');
+    }
+  };
+
   const formatMonth = (monthKey) => {
     const date = new Date(monthKey + '-01');
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
@@ -137,6 +198,13 @@ const DailyIncomeExpenseTracker = () => {
     );
   }
 
+  const currentMonthKey = new Date().toISOString().substring(0, 7);
+  const previousBalance = getPreviousMonthBalance(currentMonthKey);
+  const hasCarryForward = entries.some(entry => 
+    entry.date.substring(0, 7) === currentMonthKey && 
+    entry.category === 'Balance from Previous Month'
+  );
+
   return (
     <div className="min-h-screen w-full bg-gray-50 pb-6">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pt-4 sm:pt-6">
@@ -147,6 +215,27 @@ const DailyIncomeExpenseTracker = () => {
             <span className="break-words">Daily Income & Expense Tracker</span>
           </h1>
         </div>
+
+        {/* Carry Forward Balance Button */}
+        {previousBalance > 0 && !hasCarryForward && (
+          <div className="bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg p-4 mb-4 sm:mb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="font-semibold text-gray-800 text-base sm:text-lg">Previous Month Balance Available</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  You have <span className="font-bold text-green-700">Rs {previousBalance.toFixed(2)}</span> from last month
+                </p>
+              </div>
+              <button
+                onClick={addCarryForwardBalance}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 whitespace-nowrap"
+              >
+                <ArrowRight size={20} />
+                Add to This Month
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Add New Entry Form */}
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
