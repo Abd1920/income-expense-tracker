@@ -17,7 +17,7 @@ const DailyIncomeExpenseTracker = () => {
   const API_URL = process.env.REACT_APP_API_URL || 'https://income-expense-tracker-sage.vercel.app/api/entries';
 
   const categories = {
-    income: ['Salary', 'Freelance', 'Business', 'Investment', 'Other Income'],
+    income: ['Balance', 'Salary', 'Freelance', 'Business', 'Investment', 'Other Income'],
     expense: ['Groceries', 'Rent', 'Utilities', 'Transport', 'Entertainment', 'Shopping', 'Food', 'Health', 'Other Expense']
   };
 
