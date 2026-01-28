@@ -318,19 +318,22 @@ const DailyIncomeExpenseTracker = () => {
         {/* Monthly Summary Cards */}
         {sortedMonths[0] && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
-              <div className="text-sm text-gray-600 mb-1">Current Month Income</div>
-              <div className="text-2xl font-bold text-green-600">Rs {monthlyData[sortedMonths[0]].income.toFixed(2)}</div>
-            </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
-              <div className="text-sm text-gray-600 mb-1">Current Month Expenses</div>
-              <div className="text-2xl font-bold text-red-600">Rs {monthlyData[sortedMonths[0]].expense.toFixed(2)}</div>
-            </div>
+            {/* Balance - First */}
             <div className="bg-white border border-gray-200 rounded-lg p-5">
               <div className="text-sm text-gray-600 mb-1">Current Month Balance</div>
               <div className={`text-2xl font-bold ${monthlyData[sortedMonths[0]].income - monthlyData[sortedMonths[0]].expense >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
                 Rs {(monthlyData[sortedMonths[0]].income - monthlyData[sortedMonths[0]].expense).toFixed(2)}
               </div>
+            </div>
+            {/* Income - Second */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <div className="text-sm text-gray-600 mb-1">Current Month Income</div>
+              <div className="text-2xl font-bold text-green-600">Rs {monthlyData[sortedMonths[0]].income.toFixed(2)}</div>
+            </div>
+            {/* Expenses - Third */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <div className="text-sm text-gray-600 mb-1">Current Month Expenses</div>
+              <div className="text-2xl font-bold text-red-600">Rs {monthlyData[sortedMonths[0]].expense.toFixed(2)}</div>
             </div>
           </div>
         )}
@@ -364,7 +367,13 @@ const DailyIncomeExpenseTracker = () => {
                 </thead>
                 <tbody>
                   {monthlyData[monthKey].entries
-                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .sort((a, b) => {
+                      // Sort by date first, then by creation time for same-day entries
+                      const dateCompare = new Date(b.date) - new Date(a.date);
+                      if (dateCompare !== 0) return dateCompare;
+                      // If same date, sort by createdAt (latest first)
+                      return new Date(b.createdAt) - new Date(a.createdAt);
+                    })
                     .map((entry) => (
                       <tr key={entry._id} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="px-4 py-3 text-sm text-gray-900">{formatDate(entry.date)}</td>
@@ -396,7 +405,13 @@ const DailyIncomeExpenseTracker = () => {
             {/* Mobile Card View */}
             <div className="md:hidden space-y-3">
               {monthlyData[monthKey].entries
-                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .sort((a, b) => {
+                  // Sort by date first, then by creation time for same-day entries
+                  const dateCompare = new Date(b.date) - new Date(a.date);
+                  if (dateCompare !== 0) return dateCompare;
+                  // If same date, sort by createdAt (latest first)
+                  return new Date(b.createdAt) - new Date(a.createdAt);
+                })
                 .map((entry) => (
                   <div key={entry._id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                     <div className="flex justify-between items-start mb-2">
